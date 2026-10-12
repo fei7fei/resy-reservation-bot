@@ -232,7 +232,7 @@ def check_token(slug: str):
 def send_test_alert(slug: str):
     c = profiles.load(slug)
     topic = (c.get("alerts") or {}).get("topic")
-    ok = notify.send(topic, "✅ Resy Bot alerts work", f"Alerts for {c.get('profile_name') or slug} are set up.",
+    ok = notify.send(topic, "✅ Resy Reservation Bot alerts work", f"Alerts for {c.get('profile_name') or slug} are set up.",
                      priority=4, tags=["white_check_mark"])
     st.session_state[k(slug, "alert_test")] = "Sent — check your phone." if ok else "Couldn't reach ntfy.sh right now."
 

@@ -1,6 +1,6 @@
-"""Resy Bot -- Streamlit app entry point.
+"""Resy Reservation Bot -- Streamlit app entry point.
 
-Run:  streamlit run app.py      (or double-click the "Resy Bot" desktop shortcut)
+Run:  streamlit run app.py      (or double-click the "Resy Reservation Bot" desktop shortcut)
 
 Pages live in ui/; the bots, tracker and shared logic live in resybot/.
 """
@@ -9,7 +9,7 @@ import streamlit as st
 from resybot import profiles
 from ui.common import inject_css, status_bar
 
-st.set_page_config(page_title="Resy Bot", page_icon="🍽️", layout="wide")
+st.set_page_config(page_title="Resy Reservation Bot", page_icon="🍽️", layout="wide")
 profiles.ensure_main()
 inject_css()
 

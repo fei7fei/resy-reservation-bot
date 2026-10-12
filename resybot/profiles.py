@@ -13,7 +13,7 @@ from . import paths
 MAIN = "me"
 # Settings that belong to an account and are never copied into a new profile.
 PERSONAL_KEYS = ("auth_token", "api_key", "email", "password", "payment_method_id", "profile_name", "alerts")
-HEADER = "# Resy Bot profile. Contains a Resy login token -- don't share this file.\n"
+HEADER = "# Resy Reservation Bot profile. Contains a Resy login token -- don't share this file.\n"
 
 
 def slugify(name: str) -> str:

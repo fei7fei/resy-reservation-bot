@@ -56,7 +56,7 @@ class Notifier:
     def __init__(self, cfg: dict):
         self.cfg = cfg
         self.slug = cfg.get("profile_slug")
-        self.who = cfg.get("profile_name") or "Resy Bot"
+        self.who = cfg.get("profile_name") or "Resy Reservation Bot"
         self.place = cfg.get("restaurant_name") or "the restaurant"
         self.url = cfg.get("restaurant_url") or "https://resy.com"
         self.dry = bool(cfg.get("dry_run", True))

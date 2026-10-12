@@ -1,30 +1,45 @@
-# 🍽️ Resy Bot
+# 🍽️ Resy Reservation Bot
 
-A personal assistant for getting hard-to-book tables on [Resy](https://resy.com).
-It watches for cancellations, grabs new dates the second they're released,
-sends booking alerts to your phone, and records how often tables free up.
-Everything runs on your own computer, with a web dashboard in your browser.
+**Automatically books hard-to-get tables on [Resy](https://resy.com) for you.**
+It runs on your own computer, with a dashboard in your browser.
 
-> **Unofficial.** Resy Bot uses the same private web API as resy.com. It isn't affiliated
-> with Resy, the API can change without notice, and automated booking may go against Resy's
-> terms. Use it for your own reservations, at a polite pace, at your own risk.
+> **Unofficial.** Resy Reservation Bot uses the same private web API as resy.com. It isn't
+> affiliated with Resy, the API can change without notice, and automated booking may go against
+> Resy's terms. Use it for your own reservations, at a polite pace, at your own risk.
 
 ---
 
-## What it does
+## Two main functions
+
+### 👀 1. Watch for cancellations
+Popular restaurants are "sold out", but people cancel all the time. Pick the dates and time window
+you want. The bot checks Resy about every 15 seconds and **books a cancelled table the moment one
+appears** in your window. One request covers all your dates, so it stays light.
+
+> *Use it for:* dates that are already fully booked.
+
+### 🎯 2. Snipe new releases
+Many restaurants release tables at a fixed time each day, for example *9:00 AM, 29 days ahead*, and
+they're gone within seconds. The bot waits for that exact moment and **books in the first seconds
+after the release**, faster than you could by hand.
+
+> *Use it for:* dates that haven't opened for booking yet.
+
+You can run both at once. Booking rules you control: party size, one or more dates, earliest and
+latest time, a preferred time (tried first), seating type (for example *Dining room* only), and
+*stop after the first booking*. **Dry run** mode does everything except the final booking, so you
+can test safely.
+
+---
+
+## Also included
 
 | | |
 |---|---|
-| 👀 **Watch** | Catches cancellations on the dates you choose. One request checks all your dates at once, about every 15 seconds. When a table in your time window appears, it books it. |
-| 🎯 **Snipe** | Waits for the restaurant's daily release (for example *9:00 AM, 29 days ahead*) and books in the first seconds. |
 | 📱 **Phone alerts** | Free push notifications through the ntfy app: 🎉 booked, 👀 a table appeared but was taken, ⚠️ a problem such as an expired login. |
 | 📈 **Openings tracker** | Records every cancellation at your restaurants, including dates you aren't watching. It also times how fast tables get booked at release and after a cancellation. |
 | 👥 **Profiles** | Run bots for several Resy accounts, for example yours and a friend's, each with its own dates, alerts and bookings. |
 | 📊 **Dashboard** | Live status of every bot, an availability calendar, an activity feed and charts. |
-
-**Booking rules you control:** party size, one or more dates, earliest and latest time, a
-preferred time (tried first), seating type (for example *Dining room* only), and *stop after the
-first booking*. **Dry run** mode does everything except the final booking, so you can test safely.
 
 ---
 
@@ -38,8 +53,8 @@ first booking*. **Dry run** mode does everything except the final booking, so yo
 ## Install
 
 ```bash
-git clone https://github.com/fei7fei/resy-bot.git
-cd resy-bot
+git clone https://github.com/fei7fei/resy-reservation-bot.git
+cd resy-reservation-bot
 pip install -r requirements.txt
 ```
 
