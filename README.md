@@ -2,7 +2,7 @@
 
 **Want a table at a Michelin-starred or impossible-to-book restaurant?**
 
-The tables open at a set time, often **9:00 AM, exactly 30 days ahead**, and they're gone in
+The tables open at a set time, often **9:00 AM, about a month ahead**, and they're gone in
 seconds. Miss that moment and the restaurant shows "sold out" for weeks. The only way in is
 catching a cancellation, which means refreshing the page all day and hoping you're first.
 
