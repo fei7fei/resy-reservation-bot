@@ -1,0 +1,14 @@
+# Personal data: Resy tokens, profiles, bot logs, tracker database
+data/
+config.yaml
+profiles/
+.runs/
+.run_*.yaml
+*.db
+*.db-shm
+*.db-wal
+*.log
+
+# Python
+__pycache__/
+*.pyc

@@ -1,0 +1,53 @@
+# Copy this to config.yaml and fill in. Never commit config.yaml (it has credentials).
+
+# --- Auth ---
+# api_key: the public "Api-Key" Resy's own website sends on every request.
+# Get it from your browser: open resy.com, log in, open DevTools > Network,
+# reload, click any request to api.resy.com, and copy the value after
+# Api-Key in the Authorization header (just the key, not the quotes).
+api_key: "PASTE_RESY_API_KEY_HERE"
+
+# Either provide email/password (the bot will log in and get a token), OR
+# skip them and paste a known-good auth_token directly (from the
+# X-Resy-Auth-Token header of a logged-in browser session). Token is simpler
+# to keep working since Resy's login endpoint occasionally adds friction
+# (captcha) for new logins.
+email: "you@example.com"
+password: "your-resy-password"
+# auth_token: "PASTE_X-RESY-AUTH-TOKEN_HERE"
+
+# --- Venue / party ---
+# venue_id: numeric id. Easiest way to find it: open the restaurant's page
+# on resy.com, open DevTools > Network, reload, find the request to
+# /4/find and read the venue_id query param.
+venue_id: 1234
+party_size: 2
+
+# payment_method_id: only needed if the restaurant requires a card on file
+# to book (common for prix-fixe / Michelin spots). If omitted, the bot will
+# auto-use the first payment method on your Resy account when the venue
+# requires one. Find yours in the Resy app under Payment Methods, or it'll
+# get logged the first time the bot hits a venue that needs one.
+# payment_method_id: 5678
+
+# --- What you want ---
+reservation_date: "2026-11-09"       # the day you want to dine
+preferred_time_start: "18:00"        # earliest acceptable time (HH:MM, 24h)
+preferred_time_end: "21:00"          # latest acceptable time
+
+# --- Mode: snipe (booking window just opened) ---
+# The exact local wall-clock moment the venue's booking window unlocks.
+# Michelin spots commonly release at a fixed time N days out (e.g. "every
+# day at 10:00 AM, 30 days ahead") -- set this to that moment.
+drop_at: "2026-10-10 10:00:00"
+lead_seconds: 8                      # wake up this many seconds early and spin-wait
+burst_poll_interval_seconds: 0.3     # how fast to hammer find() right at drop
+burst_timeout_seconds: 90            # give up if nothing shows up within this long
+
+# --- Mode: watch (cancellation sniping) ---
+watch_dates: ["2026-11-09"]          # can be multiple days
+watch_poll_interval_seconds: 20      # be polite -- too low risks a 429/ban
+# watch_stop_at: "2026-11-09 17:00:00" # optional: stop watching after this time
+
+# --- Safety ---
+dry_run: true                        # true = log what it WOULD book, don't actually call /3/book
