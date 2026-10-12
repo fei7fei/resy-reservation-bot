@@ -11,10 +11,13 @@ import pandas as pd
 import streamlit as st
 
 from resybot import paths, procs
-from ui.common import SERIES, fmt_secs, theme_mode, to_12h
+from ui.common import fmt_secs, theme_mode, to_12h
 
-SEQ = {"light": ["#cde2fb", "#0d366b"], "dark": ["#1c3350", "#9ec5f4"]}  # one-hue ramp: few -> many openings
-CLOSED_FILL = {"light": "#e6e6e3", "dark": "#2a2a28"}
+# Openings are green ("more chances") so they never read as the dashboard's blue = open / red = sold out.
+SEQ = {"light": ["#b9e3c4", "#0b6b2e"], "dark": ["#1f5a32", "#8fe3a8"]}  # one-hue ramp: 1 -> many openings
+NONE_FILL = {"light": "#e9e9e6", "dark": "#2b2b29"}    # no openings recorded yet
+CLOSED_FILL = {"light": "#f6f6f4", "dark": "#1b1b1a"}  # restaurant closed that day
+GREEN = {"light": "#16893c", "dark": "#3fbf6a"}         # bar charts on this page
 
 
 def read_tracker_db():
@@ -129,22 +132,34 @@ def calendar_heatmap(days: pd.DataFrame, mode: str):
     x = alt.X("weekday:O", sort=["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"], title=None,
               axis=alt.Axis(orient="top", labelAngle=0, ticks=False, domain=False))
     y = alt.Y("week:O", sort=order, title=None, axis=alt.Axis(ticks=False, domain=False, labelPadding=8))
-    fill = alt.condition(alt.datum.status == "closed", alt.value(CLOSED_FILL[mode]),
-                         alt.Color("openings:Q", scale=alt.Scale(domain=[0, top], range=SEQ[mode]),
-                                   legend=alt.Legend(title="openings", orient="right", tickMinStep=1)))
+    df["fill"] = ["closed" if s == "closed" else "none" if n == 0 else "some" for s, n in zip(df["status"], df["openings"])]
     tooltip = [alt.Tooltip("label:N", title="Date"), alt.Tooltip("now:N", title="Right now"),
                alt.Tooltip("openings:Q", title="Openings recorded"), alt.Tooltip("times:N", title="Times seen"),
                alt.Tooltip("last:N", title="Last opened")]
-    cells = alt.Chart(df).mark_rect(cornerRadius=6, stroke="transparent", strokeWidth=2).encode(
-        x=x, y=y, color=fill, tooltip=tooltip)
-    dark_cell = alt.datum.openings > top / 2 if mode == "light" else alt.datum.openings < top / 2
-    ink = alt.condition(dark_cell, alt.value("white" if mode == "light" else "#f0efec"), alt.value("#0b0b0b"))
+    # Two layers: grey cells (closed / nothing recorded yet) and green cells shaded by how many openings.
+    plain = alt.Chart(df[df["fill"] != "some"]).mark_rect(cornerRadius=6).encode(
+        x=x, y=y, tooltip=tooltip,
+        color=alt.Color("fill:N", scale=alt.Scale(domain=["closed", "none"],
+                                                  range=[CLOSED_FILL[mode], NONE_FILL[mode]]), legend=None))
+    shaded = alt.Chart(df[df["fill"] == "some"]).mark_rect(cornerRadius=6).encode(
+        x=x, y=y, tooltip=tooltip,
+        color=alt.Color("openings:Q", scale=alt.Scale(domain=[1, max(top, 2)], range=SEQ[mode]),
+                        legend=alt.Legend(title="openings", orient="right", tickMinStep=1)))
+    # Light text on the darker greens, dark text everywhere else.
+    if mode == "light":
+        ink = alt.condition((alt.datum.openings > top / 2) & (alt.datum.openings > 0), alt.value("white"),
+                            alt.value("#1f2937"))
+    else:
+        ink = alt.condition((alt.datum.openings >= top / 2) & (alt.datum.openings > 0), alt.value("#0b0b0b"),
+                            alt.value("#e5e7eb"))
     nums = alt.Chart(df).mark_text(fontSize=13, fontWeight="bold", dy=-6).encode(x=x, y=y, text="num:N", color=ink,
                                                                                  tooltip=tooltip)
     glyph = alt.Chart(df).mark_text(fontSize=11, dy=10).encode(x=x, y=y, text="glyph:N", color=ink, tooltip=tooltip)
-    st.altair_chart((cells + nums + glyph).properties(height=62 * len(order)).configure_scale(bandPaddingInner=0.08),
-                    width="stretch")
-    st.caption("Shade = openings recorded for that dining date · ● open right now · — closed · hover a day for details.")
+    chart = alt.layer(plain, shaded, nums, glyph).resolve_scale(color="independent")
+    st.altair_chart(chart.properties(height=62 * len(order)).configure_scale(bandPaddingInner=0.08)
+                    .configure_view(strokeWidth=0), width="stretch")
+    st.caption("Greener = more cancellations recorded for that dinner date · grey = none yet · ● open right now · "
+               "— closed · hover a day for details.")
 
 
 def simple_bars(df: pd.DataFrame, x: str, x_title: str, color: str, height: int = 200, x_sort=None):
@@ -155,19 +170,19 @@ def simple_bars(df: pd.DataFrame, x: str, x_title: str, color: str, height: int 
     st.altair_chart(chart.properties(height=height), width="stretch")
 
 
-def hour_and_lead_charts(a, b, cancels: pd.DataFrame, blue: str):
+def hour_and_lead_charts(a, b, cancels: pd.DataFrame, green: str):
     with a:
         st.markdown("##### When cancellations appear")
         by_hour = cancels["opened"].dt.hour.value_counts().reindex(range(24), fill_value=0)
         hdf = pd.DataFrame({"hour": [dt.time(h).strftime("%I %p").lstrip("0") for h in range(24)], "count": by_hour.values})
-        simple_bars(hdf, "hour", "time of day", blue, x_sort=list(hdf["hour"]))
+        simple_bars(hdf, "hour", "time of day", green, x_sort=list(hdf["hour"]))
     with b:
         st.markdown("##### How far ahead people cancel")
         lead = (pd.to_datetime(cancels["day"]) - cancels["opened"].dt.normalize()).dt.days
         top = int(max(lead.max() if len(lead) else 0, 7))
         ldf = pd.DataFrame({"days before": list(range(top + 1)),
                             "count": lead.value_counts().reindex(range(top + 1), fill_value=0).values})
-        simple_bars(ldf, "days before", "days before the dinner", blue)
+        simple_bars(ldf, "days before", "days before the dinner", green)
 
 
 @st.fragment(run_every="15s")
@@ -225,7 +240,7 @@ def openings_view():
     st.markdown("##### Every bookable day")
     calendar_heatmap(days, mode)
 
-    blue = SERIES[mode][0]
+    green = GREEN[mode]
     a, b = st.columns(2)
     if cancels.empty:
         a.markdown("##### When cancellations appear")
@@ -233,9 +248,9 @@ def openings_view():
         b.markdown("##### How far ahead people cancel")
         b.caption("Shows up after the first recorded cancellation.")
     else:
-        hour_and_lead_charts(a, b, cancels, blue)
+        hour_and_lead_charts(a, b, cancels, green)
 
-    speed_section(o, slots, blue, mode)
+    speed_section(o, slots, green, mode)
 
     st.markdown("##### Opening log")
     if o.empty:

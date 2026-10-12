@@ -407,11 +407,17 @@ def editor(slug: str):
                 profiles.save(slug, c)
             if ss[k(slug, "alerts_on")]:
                 url = notify.subscribe_url(topic)
-                q, t = st.columns([1, 2], vertical_alignment="center")
-                q.markdown(segno.make(url).svg_inline(scale=3, border=2, dark="#111111", light="#ffffff"),
-                           unsafe_allow_html=True)
-                t.markdown(f"1. Install **ntfy** (free) from the App Store / Google Play\n"
-                           f"2. Scan this code, or tap **+** and enter the topic:\n\n`{topic}`")
+                st.markdown("1. Install **ntfy** (free, green bell icon) from the App Store / Google Play\n"
+                            "2. Open it and tap **+** (*Subscribe to topic*)\n"
+                            "3. Type this topic name exactly — leave the server as **ntfy.sh** — and tap **Subscribe**:")
+                st.code(topic, language=None)
+                with st.expander("Easier: get the topic onto your phone"):
+                    q, t = st.columns([1, 2], vertical_alignment="center")
+                    q.markdown(segno.make(url).svg_inline(scale=3, border=2, dark="#111111", light="#ffffff"),
+                               unsafe_allow_html=True)
+                    t.caption("Point your phone's **camera** at this code. It opens this topic's page, where you can "
+                              "copy the name (on Android it may offer to open the ntfy app directly). "
+                              "Or text yourself the topic name and copy-paste it.")
                 st.checkbox("A table opened but the bot couldn't grab it", key=k(slug, "alert_openings"))
                 st.checkbox("Problems (token expired, bot stopped, snipe missed)", key=k(slug, "alert_problems"))
                 st.caption("Bookings are always sent.")

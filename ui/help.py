@@ -26,9 +26,11 @@ Just repeat these steps.
         st.markdown("""
 Alerts use **ntfy** — a free app, no account needed.
 
-1. Install **ntfy** from the App Store or Google Play.
-2. In a profile, switch on **Send alerts to a phone**.
-3. In the app tap **+** and scan the QR code (or type the topic name).
+1. Install **ntfy** from the App Store or Google Play (green bell icon, by Philipp Heckel).
+2. In a profile, switch on **Send alerts to a phone** — it shows a topic name like `resybot-3f9c2a71b0de`.
+3. In the ntfy app tap **+** (*Subscribe to topic*), type that topic name exactly, keep the server
+   as **ntfy.sh**, and tap **Subscribe**. (The app has no QR scanner — the QR code in the profile is
+   for your phone's camera, to open the topic page so you can copy the name.)
 4. Press **Send a test alert**.
 
 You'll get: 🎉 **bookings** (always), 👀 tables that opened but got taken first, and ⚠️ problems
