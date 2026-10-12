@@ -8,3 +8,11 @@ gatherUsageStats = false
 
 [client]
 toolbarMode = "minimal"   # hide the Deploy button
+
+# Indigo accent for buttons and selections (distinct from the red/blue availability colors).
+# Set per mode so the app still follows the system's light/dark setting.
+[theme.light]
+primaryColor = "#5b5bd6"
+
+[theme.dark]
+primaryColor = "#7c7cf0"

@@ -24,7 +24,7 @@ if not is_up():
     exe = os.path.join(os.path.dirname(sys.executable), "python.exe")
     log = open(os.path.join(HERE, "streamlit_server.log"), "w", encoding="utf-8")
     subprocess.Popen(
-        [exe, "-m", "streamlit", "run", os.path.join(HERE, "resy_app.py")],
+        [exe, "-m", "streamlit", "run", os.path.join(HERE, "app.py")],
         cwd=HERE, stdout=log, stderr=subprocess.STDOUT, stdin=subprocess.DEVNULL,
         creationflags=subprocess.CREATE_NO_WINDOW | subprocess.CREATE_NEW_PROCESS_GROUP,
     )

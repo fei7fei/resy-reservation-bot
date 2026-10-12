@@ -36,6 +36,25 @@ class NoAvailabilityError(ResyError):
     """Raised when a find() call has no matching slot right now. Expected/common -- not a bug."""
 
 
+class AuthError(ResyError):
+    """The login token is expired or invalid (Resy answers 401/419). Needs a fresh token."""
+
+
+class RateLimited(ResyError):
+    """Resy answered 429: back off before trying again."""
+
+
+def _check(resp: requests.Response, what: str, ok=(200,)):
+    """Raise the right error for a non-OK response."""
+    if resp.status_code in ok:
+        return
+    if resp.status_code in (401, 419):
+        raise AuthError(f"{what}: Resy rejected the login token ({resp.status_code}) -- paste a fresh one")
+    if resp.status_code == 429:
+        raise RateLimited(f"{what}: rate limited (429)")
+    raise ResyError(f"{what} failed ({resp.status_code}): {resp.text[:300]}")
+
+
 @dataclass
 class Slot:
     config_id: str
@@ -96,6 +115,13 @@ class ResyClient:
         if not self.auth_token:
             raise ResyError("not authenticated -- call login() or set_auth_token() first")
 
+    def check_token(self) -> dict:
+        """The signed-in user's profile. Raises AuthError if the token is expired."""
+        self._require_auth()
+        resp = self.session.get(f"{BASE_URL}/2/user", timeout=15)
+        _check(resp, "token check")
+        return resp.json()
+
     # -- venue lookup -----------------------------------------------------
 
     def search_venue(self, query: str, latitude: float = 40.7128, longitude: float = -74.0060) -> list[dict]:
@@ -122,6 +148,7 @@ class ResyClient:
         return resp.json()
 
     def get_calendar(self, venue_id: int, party_size: int, days: int = 120) -> dict:
+        # (used by the watch bot too: one request covers every date it's watching)
         """Per-day inventory ('available' / 'sold-out' / 'closed') plus
         last_calendar_day, the furthest date currently bookable. No login needed."""
         today = dt.date.today()
@@ -135,8 +162,7 @@ class ResyClient:
             },
             timeout=15,
         )
-        if resp.status_code != 200:
-            raise ResyError(f"calendar failed ({resp.status_code}): {resp.text[:300]}")
+        _check(resp, "calendar")
         return resp.json()
 
     # -- availability -----------------------------------------------------
@@ -158,10 +184,7 @@ class ResyClient:
             },
             timeout=10,
         )
-        if resp.status_code == 429:
-            raise ResyError("rate limited (429) -- slow down the poll interval")
-        if resp.status_code != 200:
-            raise ResyError(f"find failed ({resp.status_code}): {resp.text[:300]}")
+        _check(resp, "find")
         data = resp.json()
         venues = data.get("results", {}).get("venues", [])
         if not venues:
@@ -195,8 +218,7 @@ class ResyClient:
         )
         if resp.status_code == 404:
             raise NoAvailabilityError("slot was taken before we could grab a book_token")
-        if resp.status_code not in (200, 201):
-            raise ResyError(f"details failed ({resp.status_code}): {resp.text[:300]}")
+        _check(resp, "details", ok=(200, 201))
         data = resp.json()
         book_token = data.get("book_token", {}).get("value")
         if not book_token:
@@ -216,8 +238,7 @@ class ResyClient:
         )
         if resp.status_code == 400:
             raise NoAvailabilityError(f"booking rejected -- slot likely gone: {resp.text[:300]}")
-        if resp.status_code not in (200, 201):
-            raise ResyError(f"book failed ({resp.status_code}): {resp.text[:300]}")
+        _check(resp, "book", ok=(200, 201))
         return resp.json()
 
     def cancel(self, resy_token: str) -> dict:

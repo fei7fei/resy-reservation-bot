@@ -15,10 +15,10 @@ Speed tracking:
     checked every 5-10 seconds, recording when each time appears and when it's
     booked -- so you can see e.g. "6:00 PM gone 14s after 9:00".
 
-Everything goes into openings.db (SQLite) next to config.yaml, which the app charts.
+Everything goes into data/openings.db (SQLite), which the app charts.
 
-Usage:
-    python resy_tracker.py --config config.yaml [--interval 60]
+Usage (the app starts it for you):
+    python -m resybot.tracker [--interval 60]
 
 Limits: the calendar says whether a day has *any* table, and slot timing has
 5-10 second resolution, so things that happen faster than that can be missed.
@@ -27,7 +27,6 @@ from __future__ import annotations
 
 import argparse
 import datetime as dt
-import glob
 import json
 import logging
 import os
@@ -37,10 +36,10 @@ import sys
 import time
 
 import requests
-import yaml
 
-from resy_bot import keep_awake
-from resy_client import ResyClient, ResyError
+from . import paths, profiles
+from .bot import keep_awake
+from .client import ResyClient, ResyError
 
 log = logging.getLogger("resy")
 
@@ -64,10 +63,6 @@ SLOT_POLL = 10         # seconds, while an opening is being watched outside a re
 WATCH_LIMIT = dt.timedelta(hours=3)  # stop timing slots of an opening after this long
 
 
-def db_path(main_config: str) -> str:
-    return os.path.join(os.path.dirname(os.path.abspath(main_config)), "openings.db")
-
-
 def connect(path: str) -> sqlite3.Connection:
     conn = sqlite3.connect(path, timeout=30)
     conn.execute("PRAGMA journal_mode=WAL")  # the app reads while we write
@@ -75,22 +70,10 @@ def connect(path: str) -> sqlite3.Connection:
     return conn
 
 
-def profile_configs(main_config: str) -> list[dict]:
-    paths = [main_config] + sorted(glob.glob(os.path.join(os.path.dirname(os.path.abspath(main_config)), "profiles", "*.yaml")))
-    out = []
-    for p in paths:
-        try:
-            with open(p, "r", encoding="utf-8") as f:
-                out.append(yaml.safe_load(f) or {})
-        except OSError:
-            pass
-    return out
-
-
-def targets(main_config: str) -> dict[tuple[int, int], dict]:
+def targets() -> dict[tuple[int, int], dict]:
     """(venue_id, party size) -> {name, token, release} for every profile's restaurant."""
     out: dict[tuple[int, int], dict] = {}
-    for c in profile_configs(main_config):
+    for c in (profiles.load(p) for p in profiles.list_profiles()):
         if not c.get("venue_id"):
             continue
         key = (int(c["venue_id"]), int(c.get("party_size", 2)))
@@ -212,10 +195,10 @@ class Tracker:
 
     # -- main loop ----------------------------------------------------------
 
-    def run(self, main_config: str, interval: int):
+    def run(self, interval: int):
         last_calendar = 0.0
         while True:
-            tg = targets(main_config)
+            tg = targets()
             now = dt.datetime.now()
             fast = any(in_release_window(t, now) for t in tg.values())
             if fast or time.monotonic() - last_calendar >= interval:
@@ -247,17 +230,17 @@ class Tracker:
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument("--config", default="config.yaml")
     parser.add_argument("--interval", type=int, default=60, help="seconds between calendar polls (min 30)")
     args = parser.parse_args()
     logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s", datefmt="%H:%M:%S",
                         handlers=[logging.StreamHandler(sys.stdout)])
     keep_awake()
     interval = max(30, args.interval)
-    conn = connect(db_path(args.config))
+    os.makedirs(paths.DATA, exist_ok=True)
+    conn = connect(paths.DB)
     log.info("Tracker started -- calendar every %ss (every %ss around release time), saving to %s",
-             interval, FAST_POLL, db_path(args.config))
-    Tracker(conn).run(args.config, interval)
+             interval, FAST_POLL, paths.DB)
+    Tracker(conn).run(interval)
 
 
 if __name__ == "__main__":
