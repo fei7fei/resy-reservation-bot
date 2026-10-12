@@ -110,6 +110,7 @@ def init_form(slug: str, c: dict):
         "stop_first": bool(c.get("stop_after_first_booking", True)),
         "token": c.get("auth_token", "") or "",
         "alerts_on": bool(a.get("enabled")),
+        "alert_booked": bool(a.get("booked", True)),
         "alert_openings": bool(a.get("openings", True)),
         "alert_problems": bool(a.get("problems", True)),
     }
@@ -156,7 +157,8 @@ def autosave(slug: str):
     else:
         c.pop("auth_token", None)
     alerts = dict(c.get("alerts") or {})
-    alerts.update(enabled=bool(v("alerts_on")), openings=bool(v("alert_openings")), problems=bool(v("alert_problems")))
+    alerts.update(enabled=bool(v("alerts_on")), booked=bool(v("alert_booked")), openings=bool(v("alert_openings")),
+                  problems=bool(v("alert_problems")))
     if alerts["enabled"] and not alerts.get("topic"):
         alerts["topic"] = notify.new_topic()
     c["alerts"] = alerts
@@ -233,6 +235,19 @@ def send_test_alert(slug: str):
     ok = notify.send(topic, "✅ Resy Bot alerts work", f"Alerts for {c.get('profile_name') or slug} are set up.",
                      priority=4, tags=["white_check_mark"])
     st.session_state[k(slug, "alert_test")] = "Sent — check your phone." if ok else "Couldn't reach ntfy.sh right now."
+
+
+def preview_booking_alert(slug: str):
+    """Send exactly what a successful booking looks like, marked as a preview."""
+    c = profiles.load(slug)
+    topic = (c.get("alerts") or {}).get("topic")
+    day = (c.get("watch_dates") or [dt.date.today().isoformat()])[0]
+    when = f"{nice_date(day).replace(',', '')} at {to_12h(c.get('preferred_time') or c.get('preferred_time_start', '19:00'))}"
+    ok = notify.send(topic, f"🎉 Booked {c.get('restaurant_name') or 'the restaurant'}! (preview)",
+                     f"{when} · party of {c.get('party_size', 2)} · on {c.get('profile_name') or slug}'s Resy account. "
+                     f"This is a preview — a real booking alert looks exactly like this.",
+                     priority=5, tags=["tada"], click="https://resy.com/account")
+    st.session_state[k(slug, "alert_test")] = "Preview sent — check your phone." if ok else "Couldn't reach ntfy.sh right now."
 
 
 def new_topic(slug: str):
@@ -418,13 +433,18 @@ def editor(slug: str):
                     t.caption("Point your phone's **camera** at this code. It opens this topic's page, where you can "
                               "copy the name (on Android it may offer to open the ntfy app directly). "
                               "Or text yourself the topic name and copy-paste it.")
-                st.checkbox("A table opened but the bot couldn't grab it", key=k(slug, "alert_openings"))
-                st.checkbox("Problems (token expired, bot stopped, snipe missed)", key=k(slug, "alert_problems"))
-                st.caption("Bookings are always sent.")
-                x, y = st.columns(2)
+                st.markdown("**Alert me when…**")
+                st.checkbox("🎉 A booking went through (urgent — breaks through Do Not Disturb)",
+                            key=k(slug, "alert_booked"))
+                st.checkbox("👀 A table opened but the bot couldn't grab it", key=k(slug, "alert_openings"))
+                st.checkbox("⚠️ Something needs attention (token expired, bot stopped, snipe missed)",
+                            key=k(slug, "alert_problems"))
+                x, y, z = st.columns(3)
                 x.button("Send a test alert", key=k(slug, "test_alert"), on_click=send_test_alert, args=(slug,),
                          width="stretch")
-                with y.popover("New topic", width="stretch"):
+                y.button("Preview a booking alert", key=k(slug, "preview_booking"), on_click=preview_booking_alert,
+                         args=(slug,), width="stretch")
+                with z.popover("New topic", width="stretch"):
                     st.caption("Makes a new private topic; phones subscribed to the old one stop getting alerts.")
                     st.button("Make a new topic", key=k(slug, "new_topic"), on_click=new_topic, args=(slug,))
                 if msg := ss.pop(k(slug, "alert_test"), None):
