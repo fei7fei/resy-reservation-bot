@@ -1,7 +1,15 @@
 # 🍽️ Resy Reservation Bot
 
-**Automatically books hard-to-get tables on [Resy](https://resy.com) for you.**
-It runs on your own computer, with a dashboard in your browser.
+**Want a table at a Michelin-starred or impossible-to-book restaurant?**
+
+The tables open at a set time, often **9:00 AM, exactly 30 days ahead**, and they're gone in
+seconds. Miss that moment and the restaurant shows "sold out" for weeks. The only way in is
+catching a cancellation, which means refreshing the page all day and hoping you're first.
+
+**Use this bot to do that for you.** It books the instant new tables are released, and it watches
+around the clock for cancellations, grabbing the first table that frees up in your time window and
+sending the confirmation to your phone. You set the restaurant, dates and times once; it handles
+the rest, from your own computer, through a dashboard in your browser.
 
 > **Unofficial.** Resy Reservation Bot uses the same private web API as resy.com. It isn't
 > affiliated with Resy, the API can change without notice, and automated booking may go against
