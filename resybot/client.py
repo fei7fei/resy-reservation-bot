@@ -258,7 +258,7 @@ def slot_matches_window(slot: Slot, start_hhmm: str, end_hhmm: str) -> bool:
 
 
 def parse_venue_url(url: str) -> tuple[str, str]:
-    """'https://resy.com/cities/vancouver-bc/venues/annalena?date=...' -> ('vancouver-bc', 'annalena').
+    """'https://resy.com/cities/new-york-ny/venues/carbone?date=...' -> ('new-york-ny', 'carbone').
     Also handles the older '/cities/ny/carbone' form."""
     path = re.sub(r"^[a-z]+://[^/]+", "", url.strip()).split("?")[0].split("#")[0]
     parts = [p for p in path.split("/") if p]

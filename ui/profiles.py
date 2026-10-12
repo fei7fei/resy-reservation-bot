@@ -69,7 +69,7 @@ def overview():
                 st.rerun()
     with cols[len(slugs) % 3].container(border=True):
         st.markdown("**➕ Add a profile**")
-        st.text_input("Name", key="new_profile_name", placeholder="e.g. Hannah", label_visibility="collapsed")
+        st.text_input("Name", key="new_profile_name", placeholder="e.g. Alex", label_visibility="collapsed")
         st.button("Create", on_click=add_profile, type="primary", width="stretch")
         st.caption("Starts with your restaurant, dates and times — never your token or alerts.")
         if msg := st.session_state.get("new_profile_msg"):
