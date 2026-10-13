@@ -1,6 +1,6 @@
 [server]
 address = "localhost"     # only this PC can open the app (it holds your Resy token)
-port = 8501
+port = 8502
 headless = true           # launch_app.pyw opens the browser itself
 
 [browser]

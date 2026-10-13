@@ -8,7 +8,7 @@ import time
 import webbrowser
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-PORT = 8501
+PORT = 8502
 URL = f"http://localhost:{PORT}"
 
 

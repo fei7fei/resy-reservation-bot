@@ -69,7 +69,7 @@ pip install -r requirements.txt
 ## Start it
 
 - **Windows:** double-click **`launch_app.pyw`**. It starts the app in the background and opens
-  your browser at <http://localhost:8501>.
+  your browser at <http://localhost:8502>.
   - Want a desktop shortcut? Right-click `launch_app.pyw` → **Send to → Desktop (create shortcut)**.
 - **Any system:** `streamlit run app.py`
 
@@ -144,7 +144,7 @@ changes.
 | Profile shows **🔑 Token expired** | Tokens eventually expire. Copy a fresh one, paste it, and start the bot again. |
 | Snipe button is greyed out | All selected dates have already been released. Use **Watch** for those dates. |
 | No alerts on the phone | Check the topic in ntfy matches the profile exactly, allow notifications for ntfy, and press **Send a test alert**. |
-| Nothing at `localhost:8501` | Run `launch_app.pyw` again, or `streamlit run app.py` and read any error it prints. |
+| Nothing at `localhost:8502` | Run `launch_app.pyw` again, or `streamlit run app.py` and read any error it prints. |
 
 ---
 
@@ -165,4 +165,4 @@ data/               your private data (created on first run, git-ignored)
 ```
 
 Developers: set `RESY_DATA=<folder>` to run against a separate data folder, for example to test without
-touching real profiles: `RESY_DATA=./test-data streamlit run app.py --server.port 8502`.
+touching real profiles: `RESY_DATA=./test-data streamlit run app.py --server.port 8503`.
