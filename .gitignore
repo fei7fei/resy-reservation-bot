@@ -12,3 +12,6 @@ profiles/
 # Python
 __pycache__/
 *.pyc
+
+# Editor
+*.code-workspace

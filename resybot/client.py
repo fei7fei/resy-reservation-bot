@@ -279,7 +279,7 @@ def booking_policy(venue: dict) -> dict:
     m = re.search(r"(\d+)\s*days?\s*(?:in advance|ahead|out|prior)", text, re.I)
     if m:
         out["days_ahead"] = int(m.group(1))
-    m = re.search(r"(\d{1,2})(?::(\d{2}))?\s*(a\.?m\.?|p\.?m\.?)", text, re.I)
+    m = re.search(r"\b(\d{1,2})(?::(\d{2}))?\s*(a\.?m\.?|p\.?m\.?)", text, re.I)
     if m:
         h = int(m.group(1)) % 12 + (12 if m.group(3).lower().startswith("p") else 0)
         out["release_time"] = f"{h:02d}:{int(m.group(2) or 0):02d}:00"
